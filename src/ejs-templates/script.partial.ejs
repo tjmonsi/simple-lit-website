@@ -1,0 +1,86 @@
+<script>
+  window.WebComponents = window.WebComponents || {};
+  window.WebComponents.root = '/<%= htmlWebpackPlugin.options.version %>/';
+  window.WebComponents.initialized = false;
+
+</script>
+<script nomodule>
+  (function () {
+    function checkCustomElementsEs5Adapter () {
+      var evalString = '(function(){ class x extends window.HTMLElement {}';
+      evalString += (window.customElements ? 'window.customElements.define("frontend-test-component", x);' : '');
+      evalString += '})();';
+      try {
+        // danger: this is to see if class can work on customElements.define
+        eval(evalString); // eslint-disable-line
+        var testScript = document.createElement('script');
+        testScript.setAttribute('nomodule', '');
+        return !testScript.noModule;
+      } catch (error) {
+        console.log(error);
+        return true;
+      }
+    }
+
+    function loadScript (src, options) {
+      var refScript = document.body.getElementsByTagName('script')[0] || document.body.getElementsByTagName('style')[0];
+      var script = document.createElement('script');
+      script.src = src;
+
+      if (options.nomodule) script.setAttribute('nomodule', '');
+      if (options.async) script.setAttribute('async', '');
+      if (options.callback) {
+        script.addEventListener('load', function () {
+          options.callback();
+        });
+        script.addEventListener('error', function (error) {
+          options.callback(error.error || error);
+        });
+      }
+
+      if (refScript && refScript.parentNode) refScript.parentNode.insertBefore(script, refScript);
+    }
+
+    function initializeES5 (error) {
+      if (error) return console.error(error);
+      window.WebComponents.waitFor(function () {
+        window.WebComponents.initialized = true;
+        loadScript('/main.bundle.<%= htmlWebpackPlugin.options.version %>.js', { async: true });
+      });
+    }
+
+    function loadWebComponents (error) {
+      loadScript('/<%= htmlWebpackPlugin.options.version %>/bundles/webcomponents-loader.js', {
+        nomodule: true,
+        async: true,
+        callback: initializeES5
+      });
+    }
+
+    function loadProxy (error) {
+      if (error) return console.error(error);
+      loadScript('/<%= htmlWebpackPlugin.options.version %>/bundles/proxy.min.js', {
+        nomodule: true,
+        async: true,
+        callback: loadWebComponents
+      });
+    }
+
+    function loadPolyfill (error) {
+      if (error) return console.error(error);
+      if (!Array.prototype.find) return loadScript('https://polyfill.io/v3/polyfill.min.js?features=Array.prototype.find%2CSymbol%2Ces2015', {
+          async: true,
+          callback: loadProxy
+        });
+      loadWebComponents();
+    }
+
+    if (checkCustomElementsEs5Adapter()) {
+      loadScript('/<%= htmlWebpackPlugin.options.version %>/bundles/custom-elements-es5-adapter.js', {
+        nomodule: true,
+        async: true,
+        callback: loadPolyfill
+      });
+    }
+  })();
+</script>

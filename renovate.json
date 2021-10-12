@@ -1,0 +1,44 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "enabledManagers": ["dockerfile", "npm", "nvm", "pip_requirements", "pip_setup", "pipenv", "gitlabci", "gitlabci-include"],
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "devDepencencies (non-major)",
+      "groupSlug": "dev-dependencies-non-major",
+      "automerge": true
+    },
+    {
+      "depTypeList": ["devDependencies"],
+      "updateTypes": ["major"],
+      "groupName": "devDepencencies (major)",
+      "groupSlug": "dev-dependencies-major"
+    },
+    {
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["patch", "pin", "digest"],
+      "groupName": "depencencies (patch)",
+      "groupSlug": "dependencies-patch",
+      "bumpVersion": "patch",
+      "automerge": true
+    },
+    {
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["minor"],
+      "groupName": "depencencies (minor)",
+      "groupSlug": "dependencies-minor",
+      "bumpVersion": "minor",
+      "automerge": true
+    },
+    {
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["major"],
+      "groupName": "depencencies (major)",
+      "groupSlug": "dependencies-major",
+      "bumpVersion": "major"
+    }
+  ]
+}
